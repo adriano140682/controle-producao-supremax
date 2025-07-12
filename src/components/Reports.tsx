@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -80,8 +79,8 @@ const Reports = () => {
         total: { caixa01: 0, caixa02: 0, combined: 0 },
         byDate: dates.map(date => {
           const entries = getProductionByDate(date);
-          const caixa01 = entries.filter(e => e.caixa === '01').reduce((sum, e) => sum + e.quantity, 0);
-          const caixa02 = entries.filter(e => e.caixa === '02').reduce((sum, e) => sum + e.quantity, 0);
+          const caixa01 = entries.filter(e => e.box === 'caixa01').reduce((sum, e) => sum + e.quantity, 0);
+          const caixa02 = entries.filter(e => e.box === 'caixa02').reduce((sum, e) => sum + e.quantity, 0);
           return {
             date: new Date(date).toLocaleDateString('pt-BR'),
             caixa01,
@@ -91,15 +90,15 @@ const Reports = () => {
         }),
         byProduct: products.map(product => {
           const totalQuantity = dates.reduce((sum, date) => {
-            const entries = getProductionByDate(date).filter(e => e.productId === product.id);
+            const entries = getProductionByDate(date).filter(e => e.product === product.name);
             return sum + entries.reduce((entrySum, e) => entrySum + e.quantity, 0);
           }, 0);
           
           return {
             name: product.name,
-            weight: product.weightPerBag,
+            weight: product.weight,
             quantity: totalQuantity,
-            totalWeight: totalQuantity * product.weightPerBag
+            totalWeight: totalQuantity * product.weight
           };
         }).filter(p => p.quantity > 0)
       },
@@ -107,13 +106,13 @@ const Reports = () => {
         total: 0,
         byEmployee: employees.map(employee => {
           const totalQuantity = dates.reduce((sum, date) => {
-            const entries = getPackagingByDate(date).filter(e => e.employeeId === employee.id);
+            const entries = getPackagingByDate(date).filter(e => e.employeeName === employee.name);
             return sum + entries.reduce((entrySum, e) => entrySum + e.quantity, 0);
           }, 0);
           
           const batches = dates.reduce((batches, date) => {
-            const entries = getPackagingByDate(date).filter(e => e.employeeId === employee.id);
-            return [...batches, ...entries.map(e => e.batchNumber)];
+            const entries = getPackagingByDate(date).filter(e => e.employeeName === employee.name);
+            return [...batches, ...entries.map(e => e.batch)];
           }, [] as string[]);
           
           return {
