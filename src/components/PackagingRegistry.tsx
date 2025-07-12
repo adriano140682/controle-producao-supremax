@@ -6,8 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Package, Plus, User } from 'lucide-react';
-import { useProductionStore } from '@/store/productionStore';
+import { Package, Plus, User, Loader2 } from 'lucide-react';
+import { useProducts } from '@/hooks/useProducts';
+import { useEmployees } from '@/hooks/useEmployees';
+import { usePackagingEntries } from '@/hooks/usePackagingEntries';
+import { toast } from '@/hooks/use-toast';
 
 const PackagingRegistry = () => {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -16,16 +19,13 @@ const PackagingRegistry = () => {
   const [batch, setBatch] = useState('');
   const [productId, setProductId] = useState('');
 
-  const { 
-    employees, 
-    products, 
-    addPackagingEntry, 
-    getPackagingByDate 
-  } = useProductionStore();
+  const { products, loading: productsLoading } = useProducts();
+  const { employees, loading: employeesLoading } = useEmployees();
+  const { addEntry, getEntriesByDate, loading: entriesLoading } = usePackagingEntries();
   
-  const packagingEntries = getPackagingByDate(date);
+  const packagingEntries = getEntriesByDate(date);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!employeeId || !quantity || !batch) return;
 
@@ -34,23 +34,45 @@ const PackagingRegistry = () => {
     
     if (!employee) return;
 
-    addPackagingEntry({
-      date,
-      employeeName: employee.name,
-      quantity: parseInt(quantity),
-      batch,
-      product: product?.name
-    });
+    try {
+      await addEntry({
+        date,
+        employee_id: employeeId,
+        employee_name: employee.name,
+        quantity: parseInt(quantity),
+        batch,
+        product_id: productId || null,
+        product_name: product?.name || null
+      });
 
-    setEmployeeId('');
-    setQuantity('');
-    setBatch('');
-    setProductId('');
+      toast({
+        title: "Sucesso",
+        description: "Registro de embalagem adicionado com sucesso!",
+      });
+
+      setEmployeeId('');
+      setQuantity('');
+      setBatch('');
+      setProductId('');
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao registrar embalagem",
+        variant: "destructive",
+      });
+    }
   };
 
-  // Filter out employees and products with empty values
-  const validEmployees = employees.filter(emp => emp.id && emp.name && emp.id.trim() !== '' && emp.name.trim() !== '');
-  const validProducts = products.filter(prod => prod.id && prod.name && prod.id.trim() !== '' && prod.name.trim() !== '');
+  if (productsLoading || employeesLoading || entriesLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  // Filter employees for packaging sector
+  const packagingEmployees = employees.filter(emp => emp.sector === 'embalagem');
 
   return (
     <div className="space-y-6">
@@ -83,14 +105,12 @@ const PackagingRegistry = () => {
                     <SelectValue placeholder="Selecione a colaboradora" />
                   </SelectTrigger>
                   <SelectContent>
-                    {validEmployees.length > 0 ? (
-                      validEmployees
-                        .filter(employee => employee.sector === 'embalagem')
-                        .map((employee) => (
-                          <SelectItem key={employee.id} value={employee.id}>
-                            {employee.name}
-                          </SelectItem>
-                        ))
+                    {packagingEmployees.length > 0 ? (
+                      packagingEmployees.map((employee) => (
+                        <SelectItem key={employee.id} value={employee.id}>
+                          {employee.name}
+                        </SelectItem>
+                      ))
                     ) : (
                       <SelectItem value="no-employees" disabled>
                         Nenhuma colaboradora cadastrada
@@ -133,8 +153,8 @@ const PackagingRegistry = () => {
                     <SelectValue placeholder="Selecione o produto" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">Não especificado</SelectItem>
-                    {validProducts.map((product) => (
+                    <SelectItem value="">Não especificado</SelectItem>
+                    {products.map((product) => (
                       <SelectItem key={product.id} value={product.id}>
                         {product.name} - {product.weight}kg
                       </SelectItem>
@@ -144,7 +164,7 @@ const PackagingRegistry = () => {
               </div>
             </div>
             
-            <Button type="submit" className="w-full md:w-auto" disabled={validEmployees.filter(emp => emp.sector === 'embalagem').length === 0}>
+            <Button type="submit" className="w-full md:w-auto" disabled={packagingEmployees.length === 0}>
               <Plus className="h-4 w-4 mr-2" />
               Registrar Embalagem
             </Button>
@@ -165,13 +185,13 @@ const PackagingRegistry = () => {
         <CardContent>
           {packagingEntries.length > 0 ? (
             <div className="space-y-3">
-              {packagingEntries.map((entry, index) => (
-                <div key={index} className="flex items-center justify-between p-4 rounded-lg border bg-card/50">
+              {packagingEntries.map((entry) => (
+                <div key={entry.id} className="flex items-center justify-between p-4 rounded-lg border bg-card/50">
                   <div className="flex-1">
                     <div className="flex items-center space-x-4">
                       <div className="flex items-center space-x-2">
                         <User className="h-4 w-4 text-primary" />
-                        <span className="font-medium">{entry.employeeName}</span>
+                        <span className="font-medium">{entry.employee_name}</span>
                       </div>
                       <Badge variant="outline">
                         Lote: {entry.batch}
@@ -179,9 +199,9 @@ const PackagingRegistry = () => {
                       <span className="text-sm text-muted-foreground">
                         {entry.quantity} sacos
                       </span>
-                      {entry.product && (
+                      {entry.product_name && (
                         <Badge variant="secondary">
-                          {entry.product}
+                          {entry.product_name}
                         </Badge>
                       )}
                     </div>

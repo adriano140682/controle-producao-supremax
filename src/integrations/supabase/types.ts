@@ -14,7 +14,197 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      employees: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          sector: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          sector?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          sector?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      packaging_entries: {
+        Row: {
+          batch: string
+          created_at: string
+          date: string
+          employee_id: string | null
+          employee_name: string
+          id: string
+          product_id: string | null
+          product_name: string | null
+          quantity: number
+          timestamp: number
+        }
+        Insert: {
+          batch: string
+          created_at?: string
+          date: string
+          employee_id?: string | null
+          employee_name: string
+          id?: string
+          product_id?: string | null
+          product_name?: string | null
+          quantity: number
+          timestamp: number
+        }
+        Update: {
+          batch?: string
+          created_at?: string
+          date?: string
+          employee_id?: string | null
+          employee_name?: string
+          id?: string
+          product_id?: string | null
+          product_name?: string | null
+          quantity?: number
+          timestamp?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "packaging_entries_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "packaging_entries_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      production_entries: {
+        Row: {
+          box: string
+          created_at: string
+          date: string
+          id: string
+          observations: string | null
+          product_id: string | null
+          product_name: string
+          quantity: number
+          time: string
+          timestamp: number
+        }
+        Insert: {
+          box: string
+          created_at?: string
+          date: string
+          id?: string
+          observations?: string | null
+          product_id?: string | null
+          product_name: string
+          quantity: number
+          time: string
+          timestamp: number
+        }
+        Update: {
+          box?: string
+          created_at?: string
+          date?: string
+          id?: string
+          observations?: string | null
+          product_id?: string | null
+          product_name?: string
+          quantity?: number
+          time?: string
+          timestamp?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "production_entries_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+          weight: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+          weight: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          weight?: number
+        }
+        Relationships: []
+      }
+      stoppages: {
+        Row: {
+          created_at: string
+          duration: number | null
+          end_date: string | null
+          end_time: string | null
+          id: string
+          is_active: boolean
+          reason: string
+          sector: string
+          start_date: string
+          start_time: string
+          timestamp: number
+        }
+        Insert: {
+          created_at?: string
+          duration?: number | null
+          end_date?: string | null
+          end_time?: string | null
+          id?: string
+          is_active?: boolean
+          reason: string
+          sector: string
+          start_date: string
+          start_time: string
+          timestamp: number
+        }
+        Update: {
+          created_at?: string
+          duration?: number | null
+          end_date?: string | null
+          end_time?: string | null
+          id?: string
+          is_active?: boolean
+          reason?: string
+          sector?: string
+          start_date?: string
+          start_time?: string
+          timestamp?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

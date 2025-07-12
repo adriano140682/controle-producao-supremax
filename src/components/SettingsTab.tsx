@@ -4,11 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Plus, Settings, Trash2, Edit, Package, Users } from 'lucide-react';
-import { useProductionStore } from '@/store/productionStore';
+import { Plus, Settings, Trash2, Edit, Package, Users, Loader2 } from 'lucide-react';
+import { useProducts } from '@/hooks/useProducts';
+import { useEmployees } from '@/hooks/useEmployees';
 import { toast } from '@/hooks/use-toast';
 
 const SettingsTab = () => {
@@ -23,17 +22,22 @@ const SettingsTab = () => {
 
   const {
     products,
-    employees,
+    loading: productsLoading,
     addProduct,
     updateProduct,
     deleteProduct,
+  } = useProducts();
+
+  const {
+    employees,
+    loading: employeesLoading,
     addEmployee,
     updateEmployee,
     deleteEmployee,
-  } = useProductionStore();
+  } = useEmployees();
 
   // Product handlers
-  const handleAddProduct = () => {
+  const handleAddProduct = async () => {
     if (!productName.trim() || !productWeight) return;
 
     const weightNum = parseFloat(productWeight);
@@ -46,29 +50,37 @@ const SettingsTab = () => {
       return;
     }
 
-    if (editingProduct) {
-      updateProduct(editingProduct, {
-        name: productName.trim(),
-        weight: weightNum,
-      });
+    try {
+      if (editingProduct) {
+        await updateProduct(editingProduct, {
+          name: productName.trim(),
+          weight: weightNum,
+        });
+        toast({
+          title: "Sucesso",
+          description: "Produto atualizado com sucesso!",
+        });
+        setEditingProduct(null);
+      } else {
+        await addProduct({
+          name: productName.trim(),
+          weight: weightNum,
+        });
+        toast({
+          title: "Sucesso",
+          description: "Produto adicionado com sucesso!",
+        });
+      }
+
+      setProductName('');
+      setProductWeight('');
+    } catch (error) {
       toast({
-        title: "Sucesso",
-        description: "Produto atualizado com sucesso!",
-      });
-      setEditingProduct(null);
-    } else {
-      addProduct({
-        name: productName.trim(),
-        weight: weightNum,
-      });
-      toast({
-        title: "Sucesso",
-        description: "Produto adicionado com sucesso!",
+        title: "Erro",
+        description: "Erro ao salvar produto",
+        variant: "destructive",
       });
     }
-
-    setProductName('');
-    setProductWeight('');
   };
 
   const handleEditProduct = (id: string) => {
@@ -80,12 +92,20 @@ const SettingsTab = () => {
     }
   };
 
-  const handleDeleteProduct = (id: string) => {
-    deleteProduct(id);
-    toast({
-      title: "Sucesso",
-      description: "Produto removido com sucesso!",
-    });
+  const handleDeleteProduct = async (id: string) => {
+    try {
+      await deleteProduct(id);
+      toast({
+        title: "Sucesso",
+        description: "Produto removido com sucesso!",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao remover produto",
+        variant: "destructive",
+      });
+    }
   };
 
   const cancelProductEdit = () => {
@@ -95,31 +115,39 @@ const SettingsTab = () => {
   };
 
   // Employee handlers
-  const handleAddEmployee = () => {
+  const handleAddEmployee = async () => {
     if (!employeeName.trim()) return;
 
-    if (editingEmployee) {
-      updateEmployee(editingEmployee, {
-        name: employeeName.trim(),
-        sector: 'embalagem',
-      });
+    try {
+      if (editingEmployee) {
+        await updateEmployee(editingEmployee, {
+          name: employeeName.trim(),
+          sector: 'embalagem',
+        });
+        toast({
+          title: "Sucesso",
+          description: "Colaboradora atualizada com sucesso!",
+        });
+        setEditingEmployee(null);
+      } else {
+        await addEmployee({
+          name: employeeName.trim(),
+          sector: 'embalagem',
+        });
+        toast({
+          title: "Sucesso",
+          description: "Colaboradora adicionada com sucesso!",
+        });
+      }
+
+      setEmployeeName('');
+    } catch (error) {
       toast({
-        title: "Sucesso",
-        description: "Colaboradora atualizada com sucesso!",
-      });
-      setEditingEmployee(null);
-    } else {
-      addEmployee({
-        name: employeeName.trim(),
-        sector: 'embalagem',
-      });
-      toast({
-        title: "Sucesso",
-        description: "Colaboradora adicionada com sucesso!",
+        title: "Erro",
+        description: "Erro ao salvar colaboradora",
+        variant: "destructive",
       });
     }
-
-    setEmployeeName('');
   };
 
   const handleEditEmployee = (id: string) => {
@@ -130,18 +158,34 @@ const SettingsTab = () => {
     }
   };
 
-  const handleDeleteEmployee = (id: string) => {
-    deleteEmployee(id);
-    toast({
-      title: "Sucesso",
-      description: "Colaboradora removida com sucesso!",
-    });
+  const handleDeleteEmployee = async (id: string) => {
+    try {
+      await deleteEmployee(id);
+      toast({
+        title: "Sucesso",
+        description: "Colaboradora removida com sucesso!",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao remover colaboradora",
+        variant: "destructive",
+      });
+    }
   };
 
   const cancelEmployeeEdit = () => {
     setEmployeeName('');
     setEditingEmployee(null);
   };
+
+  if (productsLoading || employeesLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -347,7 +391,7 @@ const SettingsTab = () => {
               <p className="text-sm text-muted-foreground">Colaboradoras Ativas</p>
             </div>
             <div className="text-center p-4 border rounded-lg">
-              <p className="text-2xl font-bold text-purple-400">v1.0</p>
+              <p className="text-2xl font-bold text-purple-400">v2.0</p>
               <p className="text-sm text-muted-foreground">Versão do Sistema</p>
             </div>
           </div>
