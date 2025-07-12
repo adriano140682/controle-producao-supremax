@@ -31,7 +31,7 @@ const StoppagesRegistry = () => {
     if (!sector || !reason) return;
 
     addStoppage({
-      date,
+      startDate: date,
       startTime: time,
       sector: sector as 'caixa01' | 'caixa02' | 'embalagem',
       reason

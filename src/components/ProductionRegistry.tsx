@@ -7,8 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Factory, Package, Plus, Trash2, Edit } from 'lucide-react';
+import { Factory, Package, Plus } from 'lucide-react';
 import { useProductionStore } from '@/store/productionStore';
 
 const ProductionRegistry = () => {
@@ -19,7 +18,7 @@ const ProductionRegistry = () => {
   const [quantity, setQuantity] = useState('');
   const [observations, setObservations] = useState('');
 
-  const { products, addProductionEntry, getProductionByDate, employees } = useProductionStore();
+  const { products, addProductionEntry, getProductionByDate } = useProductionStore();
   const productionEntries = getProductionByDate(date);
 
   const handleSubmit = (e: React.FormEvent) => {

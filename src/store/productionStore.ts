@@ -5,21 +5,21 @@ import { persist } from 'zustand/middleware';
 export interface Product {
   id: string;
   name: string;
-  weightPerBag: number;
+  weight: number;
 }
 
 export interface Employee {
   id: string;
   name: string;
-  sector: 'packaging';
+  sector: 'embalagem';
 }
 
 export interface ProductionEntry {
   id: string;
   date: string;
   time: string;
-  caixa: '01' | '02';
-  productId: string;
+  box: 'caixa01' | 'caixa02';
+  product: string;
   quantity: number;
   observations?: string;
   timestamp: number;
@@ -28,16 +28,16 @@ export interface ProductionEntry {
 export interface PackagingEntry {
   id: string;
   date: string;
-  employeeId: string;
+  employeeName: string;
   quantity: number;
-  batchNumber: string;
-  productId?: string;
+  batch: string;
+  product?: string;
   timestamp: number;
 }
 
 export interface Stoppage {
   id: string;
-  sector: 'Caixa 01' | 'Caixa 02' | 'Embalagem';
+  sector: 'caixa01' | 'caixa02' | 'embalagem';
   startDate: string;
   startTime: string;
   endDate?: string;
@@ -77,8 +77,8 @@ interface ProductionStore {
   deletePackagingEntry: (id: string) => void;
   
   // Stoppages
-  startStoppage: (stoppage: Omit<Stoppage, 'id' | 'timestamp' | 'isActive'>) => void;
-  endStoppage: (id: string) => void;
+  addStoppage: (stoppage: Omit<Stoppage, 'id' | 'timestamp' | 'isActive'>) => void;
+  endStoppage: (id: string, endTime: string) => void;
   deleteStoppage: (id: string) => void;
   
   // Analytics
@@ -96,12 +96,12 @@ export const useProductionStore = create<ProductionStore>()(
     (set, get) => ({
       // Initial data
       products: [
-        { id: '1', name: 'Ração Premium', weightPerBag: 30 },
-        { id: '2', name: 'Proteinado Bovino', weightPerBag: 25 },
+        { id: '1', name: 'Ração Premium', weight: 30 },
+        { id: '2', name: 'Proteinado Bovino', weight: 25 },
       ],
       employees: [
-        { id: '1', name: 'Jeiza Vieira', sector: 'packaging' },
-        { id: '2', name: 'Cristina Vargas', sector: 'packaging' },
+        { id: '1', name: 'Jeiza Vieira', sector: 'embalagem' },
+        { id: '2', name: 'Cristina Vargas', sector: 'embalagem' },
       ],
       productionEntries: [],
       packagingEntries: [],
@@ -192,7 +192,7 @@ export const useProductionStore = create<ProductionStore>()(
       },
 
       // Stoppages
-      startStoppage: (stoppage) => {
+      addStoppage: (stoppage) => {
         const newStoppage = { 
           ...stoppage, 
           id: Date.now().toString(),
@@ -204,7 +204,7 @@ export const useProductionStore = create<ProductionStore>()(
         }));
       },
       
-      endStoppage: (id) => {
+      endStoppage: (id, endTime) => {
         const now = new Date();
         set((state) => ({
           stoppages: state.stoppages.map((s) => {
@@ -214,7 +214,7 @@ export const useProductionStore = create<ProductionStore>()(
               return {
                 ...s,
                 endDate: now.toISOString().split('T')[0],
-                endTime: now.toTimeString().split(' ')[0].slice(0, 5),
+                endTime,
                 duration,
                 isActive: false
               };
@@ -245,7 +245,7 @@ export const useProductionStore = create<ProductionStore>()(
             hourlyData[hour] = { caixa01: 0, caixa02: 0 };
           }
           
-          if (entry.caixa === '01') {
+          if (entry.box === 'caixa01') {
             hourlyData[hour].caixa01 += entry.quantity;
           } else {
             hourlyData[hour].caixa02 += entry.quantity;
@@ -262,7 +262,7 @@ export const useProductionStore = create<ProductionStore>()(
         const entries = get().getProductionByDate(date);
         return entries.reduce(
           (acc, entry) => {
-            if (entry.caixa === '01') {
+            if (entry.box === 'caixa01') {
               acc.caixa01 += entry.quantity;
             } else {
               acc.caixa02 += entry.quantity;
@@ -293,8 +293,8 @@ export const useProductionStore = create<ProductionStore>()(
           return diffHours <= 2;
         });
         
-        const caixa01Active = recentEntries.some((entry) => entry.caixa === '01');
-        const caixa02Active = recentEntries.some((entry) => entry.caixa === '02');
+        const caixa01Active = recentEntries.some((entry) => entry.box === 'caixa01');
+        const caixa02Active = recentEntries.some((entry) => entry.box === 'caixa02');
         
         return { caixa01: caixa01Active, caixa02: caixa02Active };
       },
