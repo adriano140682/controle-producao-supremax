@@ -41,8 +41,8 @@ const PackagingRegistry = () => {
         employee_name: employee.name,
         quantity: parseInt(quantity),
         batch,
-        product_id: productId || null,
-        product_name: product?.name || null
+        product_id: productId === 'none' ? null : productId || null,
+        product_name: productId === 'none' ? null : product?.name || null
       });
 
       toast({
@@ -153,7 +153,7 @@ const PackagingRegistry = () => {
                     <SelectValue placeholder="Selecione o produto" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Não especificado</SelectItem>
+                    <SelectItem value="none">Não especificado</SelectItem>
                     {products.map((product) => (
                       <SelectItem key={product.id} value={product.id}>
                         {product.name} - {product.weight}kg
