@@ -14,20 +14,31 @@ import {
   AlertTriangle,
   BarChart3
 } from 'lucide-react';
-import { useProductionStore } from '@/store/productionStore';
+import { useProductionEntries } from '@/hooks/useProductionEntries';
+import { usePackagingEntries } from '@/hooks/usePackagingEntries';
+import { useStoppages } from '@/hooks/useStoppages';
+import { useProducts } from '@/hooks/useProducts';
+import { useEmployees } from '@/hooks/useEmployees';
 import { toast } from '@/hooks/use-toast';
 
 const Reports = () => {
-  const {
-    productionEntries,
-    packagingEntries,
-    stoppages,
-    products,
-    employees,
-    getProductionByDate,
-    getPackagingByDate,
-    getStoppagesByDate,
-  } = useProductionStore();
+  const { entries: productionEntries } = useProductionEntries();
+  const { entries: packagingEntries } = usePackagingEntries();
+  const { stoppages } = useStoppages();
+  const { products } = useProducts();
+  const { employees } = useEmployees();
+
+  const getProductionByDate = (date: string) => {
+    return productionEntries.filter(entry => entry.date === date);
+  };
+
+  const getPackagingByDate = (date: string) => {
+    return packagingEntries.filter(entry => entry.date === date);
+  };
+
+  const getStoppagesByDate = (date: string) => {
+    return stoppages.filter(stoppage => stoppage.start_date === date);
+  };
 
   const [reportType, setReportType] = useState<'day' | 'week' | 'custom'>('day');
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
@@ -90,7 +101,7 @@ const Reports = () => {
         }),
         byProduct: products.map(product => {
           const totalQuantity = dates.reduce((sum, date) => {
-            const entries = getProductionByDate(date).filter(e => e.product === product.name);
+            const entries = getProductionByDate(date).filter(e => e.product_name === product.name);
             return sum + entries.reduce((entrySum, e) => entrySum + e.quantity, 0);
           }, 0);
           
@@ -106,12 +117,12 @@ const Reports = () => {
         total: 0,
         byEmployee: employees.map(employee => {
           const totalQuantity = dates.reduce((sum, date) => {
-            const entries = getPackagingByDate(date).filter(e => e.employeeName === employee.name);
+            const entries = getPackagingByDate(date).filter(e => e.employee_name === employee.name);
             return sum + entries.reduce((entrySum, e) => entrySum + e.quantity, 0);
           }, 0);
           
           const batches = dates.reduce((batches, date) => {
-            const entries = getPackagingByDate(date).filter(e => e.employeeName === employee.name);
+            const entries = getPackagingByDate(date).filter(e => e.employee_name === employee.name);
             return [...batches, ...entries.map(e => e.batch)];
           }, [] as string[]);
           
@@ -125,17 +136,17 @@ const Reports = () => {
       stoppages: {
         total: 0,
         totalTime: 0,
-        bySector: ['Caixa 01', 'Caixa 02', 'Embalagem'].map(sector => {
+        bySector: ['caixa01', 'caixa02', 'embalagem'].map(sector => {
           const sectorStoppages = dates.reduce((stoppages, date) => {
             return [...stoppages, ...getStoppagesByDate(date).filter(s => s.sector === sector)];
           }, [] as any[]);
           
           const totalTime = sectorStoppages
             .filter(s => s.duration)
-            .reduce((sum, s) => sum + s.duration, 0);
+            .reduce((sum, s) => sum + (s.duration || 0), 0);
           
           return {
-            sector,
+            sector: sector === 'caixa01' ? 'Caixa 01' : sector === 'caixa02' ? 'Caixa 02' : 'Embalagem',
             count: sectorStoppages.length,
             totalTime,
             avgTime: sectorStoppages.length > 0 ? totalTime / sectorStoppages.length : 0,
@@ -225,7 +236,8 @@ const Reports = () => {
     csvContent += "=== DETALHES DAS PARADAS ===\n";
     csvContent += "Data;Setor;Motivo;Duração\n";
     reportData.stoppages.list.forEach(stoppage => {
-      csvContent += `${new Date(stoppage.startDate).toLocaleDateString('pt-BR')};${stoppage.sector};"${stoppage.reason}";${stoppage.duration ? formatDuration(stoppage.duration) : 'Em andamento'}\n`;
+      const sectorName = stoppage.sector === 'caixa01' ? 'Caixa 01' : stoppage.sector === 'caixa02' ? 'Caixa 02' : 'Embalagem';
+      csvContent += `${new Date(stoppage.start_date).toLocaleDateString('pt-BR')};${sectorName};"${stoppage.reason}";${stoppage.duration ? formatDuration(stoppage.duration) : 'Em andamento'}\n`;
     });
 
     // Create and download file
