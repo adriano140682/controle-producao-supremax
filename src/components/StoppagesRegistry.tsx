@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, Play, Square, Clock } from 'lucide-react';
-import { useProductionStore } from '@/store/productionStore';
+import { useStoppages } from '@/hooks/useStoppages';
+import { toast } from '@/hooks/use-toast';
 
 const StoppagesRegistry = () => {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -16,34 +17,58 @@ const StoppagesRegistry = () => {
   const [sector, setSector] = useState('');
   const [reason, setReason] = useState('');
 
-  const { 
-    addStoppage, 
-    endStoppage, 
-    getStoppagesByDate, 
-    stoppages 
-  } = useProductionStore();
+  const { stoppages, addStoppage, endStoppage } = useStoppages();
+
+  const getStoppagesByDate = (date: string) => {
+    return stoppages.filter(stoppage => stoppage.start_date === date);
+  };
 
   const stoppagesForDate = getStoppagesByDate(date);
-  const activeStoppages = stoppages.filter(s => s.isActive);
+  const activeStoppages = stoppages.filter(s => s.is_active);
 
-  const handleStartStoppage = (e: React.FormEvent) => {
+  const handleStartStoppage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!sector || !reason) return;
 
-    addStoppage({
-      startDate: date,
-      startTime: time,
-      sector: sector as 'caixa01' | 'caixa02' | 'embalagem',
-      reason
-    });
+    try {
+      await addStoppage({
+        start_date: date,
+        start_time: time,
+        sector: sector as 'caixa01' | 'caixa02' | 'embalagem',
+        reason
+      });
 
-    setSector('');
-    setReason('');
+      toast({
+        title: "Sucesso",
+        description: "Parada registrada com sucesso!",
+      });
+
+      setSector('');
+      setReason('');
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao registrar parada. Tente novamente.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleEndStoppage = (stoppageId: string) => {
+  const handleEndStoppage = async (stoppageId: string) => {
     const endTime = new Date().toTimeString().slice(0, 5);
-    endStoppage(stoppageId, endTime);
+    try {
+      await endStoppage(stoppageId, endTime);
+      toast({
+        title: "Sucesso",
+        description: "Parada encerrada com sucesso!",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao encerrar parada. Tente novamente.",
+        variant: "destructive",
+      });
+    }
   };
 
   const formatDuration = (duration: number) => {
@@ -80,7 +105,7 @@ const StoppagesRegistry = () => {
                       </Badge>
                       <span className="font-medium">{stoppage.reason}</span>
                       <span className="text-sm text-muted-foreground">
-                        Iniciado: {stoppage.startTime} - {stoppage.startDate}
+                        Iniciado: {stoppage.start_time} - {new Date(stoppage.start_date).toLocaleDateString('pt-BR')}
                       </span>
                     </div>
                   </div>
@@ -186,11 +211,11 @@ const StoppagesRegistry = () => {
                 <div key={stoppage.id} className="p-4 rounded-lg border bg-card/50">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
-                      <Badge variant={stoppage.isActive ? "destructive" : "outline"}>
+                      <Badge variant={stoppage.is_active ? "destructive" : "outline"}>
                         {stoppage.sector.toUpperCase()}
                       </Badge>
                       <span className="font-medium">{stoppage.reason}</span>
-                      {stoppage.isActive ? (
+                      {stoppage.is_active ? (
                         <Badge variant="destructive" className="animate-pulse">
                           ATIVA
                         </Badge>
@@ -208,9 +233,9 @@ const StoppagesRegistry = () => {
                     )}
                   </div>
                   <div className="mt-2 text-sm text-muted-foreground">
-                    <span>Início: {stoppage.startTime}</span>
-                    {stoppage.endTime && (
-                      <span className="ml-4">Fim: {stoppage.endTime}</span>
+                    <span>Início: {stoppage.start_time}</span>
+                    {stoppage.end_time && (
+                      <span className="ml-4">Fim: {stoppage.end_time}</span>
                     )}
                   </div>
                 </div>

@@ -28,28 +28,71 @@ import {
   Target,
   Activity
 } from 'lucide-react';
-import { useProductionStore } from '@/store/productionStore';
+import { useProductionEntries } from '@/hooks/useProductionEntries';
+import { usePackagingEntries } from '@/hooks/usePackagingEntries';
+import { useStoppages } from '@/hooks/useStoppages';
+import { useProducts } from '@/hooks/useProducts';
+import { useEmployees } from '@/hooks/useEmployees';
 
 const Dashboard = () => {
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split('T')[0]
   );
   
-  const {
-    getProductionByHour,
-    getTotalProductionByBox,
-    getPackagingByDate,
-    getStoppagesByDate,
-    products,
-    employees,
-    stoppages
-  } = useProductionStore();
+  const { entries: productionEntries } = useProductionEntries();
+  const { entries: packagingEntries } = usePackagingEntries();
+  const { stoppages } = useStoppages();
+  const { products } = useProducts();
+  const { employees } = useEmployees();
+
+  const getProductionByDate = (date: string) => {
+    return productionEntries.filter(entry => entry.date === date);
+  };
+
+  const getPackagingByDate = (date: string) => {
+    return packagingEntries.filter(entry => entry.date === date);
+  };
+
+  const getStoppagesByDate = (date: string) => {
+    return stoppages.filter(stoppage => stoppage.start_date === date);
+  };
+
+  const getTotalProductionByBox = (date: string) => {
+    const entries = getProductionByDate(date);
+    return {
+      caixa01: entries.filter(e => e.box === 'caixa01').reduce((sum, e) => sum + e.quantity, 0),
+      caixa02: entries.filter(e => e.box === 'caixa02').reduce((sum, e) => sum + e.quantity, 0)
+    };
+  };
+
+  const getProductionByHour = (date: string) => {
+    const entries = getProductionByDate(date);
+    const hourlyData: { [key: string]: { hour: string; caixa01: number; caixa02: number; } } = {};
+    
+    for (let hour = 0; hour < 24; hour++) {
+      const hourString = hour.toString().padStart(2, '0') + ':00';
+      hourlyData[hourString] = { hour: hourString, caixa01: 0, caixa02: 0 };
+    }
+    
+    entries.forEach(entry => {
+      const hour = entry.time.split(':')[0] + ':00';
+      if (hourlyData[hour]) {
+        if (entry.box === 'caixa01') {
+          hourlyData[hour].caixa01 += entry.quantity;
+        } else {
+          hourlyData[hour].caixa02 += entry.quantity;
+        }
+      }
+    });
+    
+    return Object.values(hourlyData);
+  };
 
   const hourlyData = getProductionByHour(selectedDate);
   const totalProduction = getTotalProductionByBox(selectedDate);
   const packagingData = getPackagingByDate(selectedDate);
   const stoppagesData = getStoppagesByDate(selectedDate);
-  const activeStoppages = stoppages.filter(s => s.isActive);
+  const activeStoppages = stoppages.filter(s => s.is_active);
 
   const totalPackaged = packagingData.reduce((sum, entry) => sum + entry.quantity, 0);
   const totalStoppageTime = stoppagesData.reduce((sum, stoppage) => {
@@ -225,7 +268,7 @@ const Dashboard = () => {
                     <div className="font-medium text-red-400">{stoppage.sector}</div>
                     <div className="text-sm text-muted-foreground">{stoppage.reason}</div>
                     <div className="text-xs text-muted-foreground">
-                      Iniciado em: {stoppage.startTime} - {stoppage.startDate}
+                      Iniciado em: {stoppage.start_time} - {new Date(stoppage.start_date).toLocaleDateString('pt-BR')}
                     </div>
                   </div>
                   <Badge variant="destructive" className="animate-pulse-slow">

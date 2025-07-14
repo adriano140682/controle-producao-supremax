@@ -8,7 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Factory, Package, Plus } from 'lucide-react';
-import { useProductionStore } from '@/store/productionStore';
+import { useProductionEntries } from '@/hooks/useProductionEntries';
+import { useProducts } from '@/hooks/useProducts';
+import { toast } from '@/hooks/use-toast';
 
 const ProductionRegistry = () => {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -18,29 +20,49 @@ const ProductionRegistry = () => {
   const [quantity, setQuantity] = useState('');
   const [observations, setObservations] = useState('');
 
-  const { products, addProductionEntry, getProductionByDate } = useProductionStore();
-  const productionEntries = getProductionByDate(date);
+  const { products } = useProducts();
+  const { entries: productionEntries, addEntry } = useProductionEntries();
+  
+  const getProductionByDate = (date: string) => {
+    return productionEntries.filter(entry => entry.date === date);
+  };
+  
+  const todayEntries = getProductionByDate(date);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!box || !productId || !quantity) return;
 
     const product = products.find(p => p.id === productId);
     if (!product) return;
 
-    addProductionEntry({
-      date,
-      time,
-      box: box as 'caixa01' | 'caixa02',
-      product: product.name,
-      quantity: parseInt(quantity),
-      observations: observations || undefined
-    });
+    try {
+      await addEntry({
+        date,
+        time,
+        box: box as 'caixa01' | 'caixa02',
+        product_name: product.name,
+        product_id: productId,
+        quantity: parseInt(quantity),
+        observations: observations || null
+      });
 
-    setBox('');
-    setProductId('');
-    setQuantity('');
-    setObservations('');
+      toast({
+        title: "Sucesso",
+        description: "Produção registrada com sucesso!",
+      });
+
+      setBox('');
+      setProductId('');
+      setQuantity('');
+      setObservations('');
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao registrar produção. Tente novamente.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Filter out any products with empty names or IDs
@@ -157,21 +179,21 @@ const ProductionRegistry = () => {
           <CardTitle className="flex items-center justify-between">
             <span>Registros de Produção - {new Date(date).toLocaleDateString('pt-BR')}</span>
             <Badge variant="outline">
-              {productionEntries.length} registros
+              {todayEntries.length} registros
             </Badge>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {productionEntries.length > 0 ? (
+          {todayEntries.length > 0 ? (
             <div className="space-y-3">
-              {productionEntries.map((entry, index) => (
-                <div key={index} className="flex items-center justify-between p-4 rounded-lg border bg-card/50">
+              {todayEntries.map((entry) => (
+                <div key={entry.id} className="flex items-center justify-between p-4 rounded-lg border bg-card/50">
                   <div className="flex-1">
                     <div className="flex items-center space-x-4">
                       <Badge variant={entry.box === 'caixa01' ? 'default' : 'secondary'}>
                         {entry.box === 'caixa01' ? 'Caixa 01' : 'Caixa 02'}
                       </Badge>
-                      <span className="font-medium">{entry.product}</span>
+                      <span className="font-medium">{entry.product_name}</span>
                       <span className="text-sm text-muted-foreground">
                         {entry.quantity} sacos
                       </span>
