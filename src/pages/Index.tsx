@@ -23,13 +23,14 @@ import StoppagesRegistry from '@/components/StoppagesRegistry';
 import Reports from '@/components/Reports';
 import SettingsTab from '@/components/SettingsTab';
 import { useProductionStore } from '@/store/productionStore';
+import { getBrazilTime, formatBrazilDate, formatBrazilTime } from '@/utils/dateUtils';
 
 const Index = () => {
   const { getProductionStatus, currentStoppages } = useProductionStore();
-  const [currentTime, setCurrentTime] = useState(new Date());
+  const [currentTime, setCurrentTime] = useState(getBrazilTime());
 
   useEffect(() => {
-    const interval = setInterval(() => setCurrentTime(new Date()), 1000);
+    const interval = setInterval(() => setCurrentTime(getBrazilTime()), 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -57,10 +58,10 @@ const Index = () => {
             <div className="flex items-center space-x-4">
               <div className="text-right">
                 <div className="text-sm font-medium">
-                  {currentTime.toLocaleDateString('pt-BR')}
+                  {formatBrazilDate(currentTime)}
                 </div>
                 <div className="text-lg font-bold text-primary">
-                  {currentTime.toLocaleTimeString('pt-BR')}
+                  {formatBrazilTime(currentTime)}
                 </div>
               </div>
               

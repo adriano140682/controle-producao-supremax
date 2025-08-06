@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables, TablesInsert } from '@/integrations/supabase/types';
+import { getBrazilTimestamp } from '@/utils/dateUtils';
 
 type ProductionEntry = Tables<'production_entries'>;
 type ProductionEntryInsert = TablesInsert<'production_entries'>;
@@ -30,7 +31,7 @@ export const useProductionEntries = () => {
     try {
       const newEntry = {
         ...entry,
-        timestamp: Date.now()
+        timestamp: getBrazilTimestamp()
       };
 
       const { data, error } = await supabase

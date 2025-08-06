@@ -11,9 +11,10 @@ import { useProducts } from '@/hooks/useProducts';
 import { useEmployees } from '@/hooks/useEmployees';
 import { usePackagingEntries } from '@/hooks/usePackagingEntries';
 import { toast } from '@/hooks/use-toast';
+import { getBrazilDateForInput } from '@/utils/dateUtils';
 
 const PackagingRegistry = () => {
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(getBrazilDateForInput());
   const [employeeId, setEmployeeId] = useState('');
   const [quantity, setQuantity] = useState('');
   const [batch, setBatch] = useState('');

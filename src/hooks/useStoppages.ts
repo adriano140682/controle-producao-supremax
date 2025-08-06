@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables, TablesInsert } from '@/integrations/supabase/types';
+import { getBrazilTime, getBrazilTimestamp } from '@/utils/dateUtils';
 
 type Stoppage = Tables<'stoppages'>;
 type StoppageInsert = TablesInsert<'stoppages'>;
@@ -30,7 +31,7 @@ export const useStoppages = () => {
     try {
       const newStoppage = {
         ...stoppage,
-        timestamp: Date.now(),
+        timestamp: getBrazilTimestamp(),
         is_active: true
       };
 
@@ -51,7 +52,7 @@ export const useStoppages = () => {
 
   const endStoppage = async (id: string, endTime: string) => {
     try {
-      const now = new Date();
+      const now = getBrazilTime();
       const stoppage = stoppages.find(s => s.id === id);
       
       if (!stoppage) throw new Error('Stoppage not found');

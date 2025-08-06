@@ -10,10 +10,11 @@ import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, Play, Square, Clock } from 'lucide-react';
 import { useStoppages } from '@/hooks/useStoppages';
 import { toast } from '@/hooks/use-toast';
+import { getBrazilDateForInput, getBrazilTimeForInput } from '@/utils/dateUtils';
 
 const StoppagesRegistry = () => {
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [time, setTime] = useState(new Date().toTimeString().slice(0, 5));
+  const [date, setDate] = useState(getBrazilDateForInput());
+  const [time, setTime] = useState(getBrazilTimeForInput());
   const [sector, setSector] = useState('');
   const [reason, setReason] = useState('');
 
@@ -55,7 +56,7 @@ const StoppagesRegistry = () => {
   };
 
   const handleEndStoppage = async (stoppageId: string) => {
-    const endTime = new Date().toTimeString().slice(0, 5);
+    const endTime = getBrazilTimeForInput();
     try {
       await endStoppage(stoppageId, endTime);
       toast({

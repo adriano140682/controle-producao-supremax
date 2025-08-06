@@ -11,10 +11,11 @@ import { Factory, Package, Plus } from 'lucide-react';
 import { useProductionEntries } from '@/hooks/useProductionEntries';
 import { useProducts } from '@/hooks/useProducts';
 import { toast } from '@/hooks/use-toast';
+import { getBrazilDateForInput, getBrazilTimeForInput } from '@/utils/dateUtils';
 
 const ProductionRegistry = () => {
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [time, setTime] = useState(new Date().toTimeString().slice(0, 5));
+  const [date, setDate] = useState(getBrazilDateForInput());
+  const [time, setTime] = useState(getBrazilTimeForInput());
   const [box, setBox] = useState('');
   const [productId, setProductId] = useState('');
   const [quantity, setQuantity] = useState('');
