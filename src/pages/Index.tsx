@@ -24,8 +24,10 @@ import Reports from '@/components/Reports';
 import SettingsTab from '@/components/SettingsTab';
 import { useProductionStore } from '@/store/productionStore';
 import { getBrazilTime, formatBrazilDate, formatBrazilTime } from '@/utils/dateUtils';
+import { useAuth } from '@/hooks/useAuth';
 
 const Index = () => {
+  const { profile, signOut } = useAuth();
   const { getProductionStatus, currentStoppages } = useProductionStore();
   const [currentTime, setCurrentTime] = useState(getBrazilTime());
 
@@ -47,9 +49,11 @@ const Index = () => {
               <div className="flex items-center space-x-2">
                 <Factory className="h-8 w-8 text-primary" />
                 <div>
-                  <h1 className="text-2xl font-bold">Sistema de Produção de Ração</h1>
+                  <h1 className="text-2xl font-bold">
+                    Sistema de {profile?.production_type === 'mineral' ? 'Mineral' : 'Ração'}
+                  </h1>
                   <p className="text-sm text-muted-foreground">
-                    Controle Completo de Produção
+                    {profile?.name} - Controle de Produção
                   </p>
                 </div>
               </div>
@@ -66,20 +70,43 @@ const Index = () => {
               </div>
               
               <div className="flex space-x-2">
-                <Badge variant={productionStatus.caixa01 ? "default" : "secondary"} className="status-running">
-                  <Play className="h-3 w-3 mr-1" />
-                  Caixa 01
-                </Badge>
-                <Badge variant={productionStatus.caixa02 ? "default" : "secondary"} className="status-running">
-                  <Play className="h-3 w-3 mr-1" />
-                  Caixa 02
-                </Badge>
+                {profile?.production_type === 'ração' ? (
+                  <>
+                    <Badge variant={productionStatus.caixa01 ? "default" : "secondary"} className="status-running">
+                      <Play className="h-3 w-3 mr-1" />
+                      Caixa 01
+                    </Badge>
+                    <Badge variant={productionStatus.caixa02 ? "default" : "secondary"} className="status-running">
+                      <Play className="h-3 w-3 mr-1" />
+                      Caixa 02
+                    </Badge>
+                  </>
+                ) : (
+                  <>
+                    <Badge variant={productionStatus.caixa01 ? "default" : "secondary"} className="status-running">
+                      <Play className="h-3 w-3 mr-1" />
+                      Linha 01
+                    </Badge>
+                    <Badge variant={productionStatus.caixa02 ? "default" : "secondary"} className="status-running">
+                      <Play className="h-3 w-3 mr-1" />
+                      Linha 02
+                    </Badge>
+                  </>
+                )}
                 {activeStoppages > 0 && (
                   <Badge variant="destructive" className="status-stopped">
                     <AlertTriangle className="h-3 w-3 mr-1" />
                     {activeStoppages} Paradas
                   </Badge>
                 )}
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => signOut()}
+                  className="ml-2"
+                >
+                  Sair
+                </Button>
               </div>
             </div>
           </div>

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,8 +10,10 @@ import { AlertTriangle, Play, Square, Clock } from 'lucide-react';
 import { useStoppages } from '@/hooks/useStoppages';
 import { toast } from '@/hooks/use-toast';
 import { getBrazilDateForInput, getBrazilTimeForInput } from '@/utils/dateUtils';
+import { useAuth } from '@/hooks/useAuth';
 
 const StoppagesRegistry = () => {
+  const { profile } = useAuth();
   const [date, setDate] = useState(getBrazilDateForInput());
   const [time, setTime] = useState(getBrazilTimeForInput());
   const [sector, setSector] = useState('');
@@ -35,7 +36,7 @@ const StoppagesRegistry = () => {
       await addStoppage({
         start_date: date,
         start_time: time,
-        sector: sector as 'caixa01' | 'caixa02' | 'embalagem',
+        sector,
         reason
       });
 
@@ -78,11 +79,16 @@ const StoppagesRegistry = () => {
     return `${hours}h ${minutes}min`;
   };
 
-  const sectorOptions = [
-    { value: 'caixa01', label: 'Caixa 01' },
-    { value: 'caixa02', label: 'Caixa 02' },
-    { value: 'embalagem', label: 'Embalagem' }
-  ];
+  const getSectorLabel = (sectorValue: string) => {
+    const sectorMap: { [key: string]: string } = {
+      'caixa01': 'Caixa 01',
+      'caixa02': 'Caixa 02',
+      'linha01': 'Linha 01',
+      'linha02': 'Linha 02',
+      'embalagem': 'Embalagem'
+    };
+    return sectorMap[sectorValue] || sectorValue.toUpperCase();
+  };
 
   return (
     <div className="space-y-6">
@@ -102,7 +108,7 @@ const StoppagesRegistry = () => {
                   <div className="flex-1">
                     <div className="flex items-center space-x-4">
                       <Badge variant="destructive" className="animate-pulse">
-                        {stoppage.sector.toUpperCase()}
+                        {getSectorLabel(stoppage.sector)}
                       </Badge>
                       <span className="font-medium">{stoppage.reason}</span>
                       <span className="text-sm text-muted-foreground">
@@ -159,18 +165,26 @@ const StoppagesRegistry = () => {
                 />
               </div>
               
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="sector">Setor</Label>
-                <Select value={sector} onValueChange={setSector} required>
+                <Select value={sector} onValueChange={setSector}>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione o setor" />
                   </SelectTrigger>
                   <SelectContent>
-                    {sectorOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
+                    {profile?.production_type === 'mineral' ? (
+                      <>
+                        <SelectItem value="linha01">Linha 01</SelectItem>
+                        <SelectItem value="linha02">Linha 02</SelectItem>
+                        <SelectItem value="embalagem">Embalagem</SelectItem>
+                      </>
+                    ) : (
+                      <>
+                        <SelectItem value="caixa01">Caixa 01</SelectItem>
+                        <SelectItem value="caixa02">Caixa 02</SelectItem>
+                        <SelectItem value="embalagem">Embalagem</SelectItem>
+                      </>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -213,7 +227,7 @@ const StoppagesRegistry = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
                       <Badge variant={stoppage.is_active ? "destructive" : "outline"}>
-                        {stoppage.sector.toUpperCase()}
+                        {getSectorLabel(stoppage.sector)}
                       </Badge>
                       <span className="font-medium">{stoppage.reason}</span>
                       {stoppage.is_active ? (

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,8 +11,10 @@ import { useProductionEntries } from '@/hooks/useProductionEntries';
 import { useProducts } from '@/hooks/useProducts';
 import { toast } from '@/hooks/use-toast';
 import { getBrazilDateForInput, getBrazilTimeForInput } from '@/utils/dateUtils';
+import { useAuth } from '@/hooks/useAuth';
 
 const ProductionRegistry = () => {
+  const { profile } = useAuth();
   const [date, setDate] = useState(getBrazilDateForInput());
   const [time, setTime] = useState(getBrazilTimeForInput());
   const [box, setBox] = useState('');
@@ -34,19 +35,23 @@ const ProductionRegistry = () => {
     e.preventDefault();
     if (!box || !productId || !quantity) return;
 
-    const product = products.find(p => p.id === productId);
-    if (!product) return;
+    const selectedProduct = products.find(p => p.id === productId);
+    if (!selectedProduct) return;
 
     try {
-      await addEntry({
+      // Add production_type from user profile
+      const entryData = {
         date,
         time,
-        box: box as 'caixa01' | 'caixa02',
-        product_name: product.name,
+        box,
         product_id: productId,
+        product_name: selectedProduct.name,
         quantity: parseInt(quantity),
-        observations: observations || null
-      });
+        observations: observations || null,
+        production_type: profile?.production_type || 'ração'
+      };
+
+      await addEntry(entryData);
 
       toast({
         title: "Sucesso",
@@ -66,8 +71,13 @@ const ProductionRegistry = () => {
     }
   };
 
-  // Filter out any products with empty names or IDs
-  const validProducts = products.filter(product => product.id && product.name && product.id.trim() !== '' && product.name.trim() !== '');
+  // Filter products by category and remove empty names/ids
+  const filteredProducts = products
+    .filter(product => 
+      product.name && 
+      product.id && 
+      product.category === profile?.production_type
+    );
 
   return (
     <div className="space-y-6">
@@ -75,14 +85,14 @@ const ProductionRegistry = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
-            <Factory className="h-5 w-5 text-primary" />
-            <span>Registro de Produção - Ensacamento</span>
+            <Factory className="h-5 w-5" />
+            <span>Registro de {profile?.production_type === 'mineral' ? 'Mineral' : 'Ração'}</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
                 <Label htmlFor="date">Data</Label>
                 <Input
                   id="date"
@@ -93,7 +103,7 @@ const ProductionRegistry = () => {
                 />
               </div>
               
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="time">Hora</Label>
                 <Input
                   id="time"
@@ -103,36 +113,47 @@ const ProductionRegistry = () => {
                   required
                 />
               </div>
-              
-              <div>
-                <Label htmlFor="box">Caixa</Label>
-                <Select value={box} onValueChange={setBox} required>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="box">{profile?.production_type === 'mineral' ? 'Linha' : 'Caixa'}</Label>
+                <Select value={box} onValueChange={setBox}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione a caixa" />
+                    <SelectValue placeholder={`Selecione a ${profile?.production_type === 'mineral' ? 'linha' : 'caixa'}`} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="caixa01">Caixa 01</SelectItem>
-                    <SelectItem value="caixa02">Caixa 02</SelectItem>
+                    {profile?.production_type === 'mineral' ? (
+                      <>
+                        <SelectItem value="linha01">Linha 01</SelectItem>
+                        <SelectItem value="linha02">Linha 02</SelectItem>
+                      </>
+                    ) : (
+                      <>
+                        <SelectItem value="caixa01">Caixa 01</SelectItem>
+                        <SelectItem value="caixa02">Caixa 02</SelectItem>
+                      </>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
               
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="product">Produto</Label>
-                <Select value={productId} onValueChange={setProductId} required>
+                <Select value={productId} onValueChange={setProductId}>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione o produto" />
                   </SelectTrigger>
                   <SelectContent>
-                    {validProducts.length > 0 ? (
-                      validProducts.map((product) => (
+                    {filteredProducts.length > 0 ? (
+                      filteredProducts.map((product) => (
                         <SelectItem key={product.id} value={product.id}>
                           {product.name} - {product.weight}kg
                         </SelectItem>
                       ))
                     ) : (
                       <SelectItem value="no-products" disabled>
-                        Nenhum produto cadastrado
+                        Nenhum produto de {profile?.production_type} cadastrado
                       </SelectItem>
                     )}
                   </SelectContent>
@@ -141,7 +162,7 @@ const ProductionRegistry = () => {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="quantity">Quantidade (sacos)</Label>
                 <Input
                   id="quantity"
@@ -154,7 +175,7 @@ const ProductionRegistry = () => {
                 />
               </div>
               
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="observations">Observações (opcional)</Label>
                 <Textarea
                   id="observations"
@@ -166,7 +187,7 @@ const ProductionRegistry = () => {
               </div>
             </div>
             
-            <Button type="submit" className="w-full md:w-auto" disabled={validProducts.length === 0}>
+            <Button type="submit" className="w-full md:w-auto" disabled={filteredProducts.length === 0}>
               <Plus className="h-4 w-4 mr-2" />
               Registrar Produção
             </Button>
@@ -178,7 +199,7 @@ const ProductionRegistry = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span>Registros de Produção - {new Date(date).toLocaleDateString('pt-BR')}</span>
+            <span>Registros do Dia - {new Date(date).toLocaleDateString('pt-BR')}</span>
             <Badge variant="outline">
               {todayEntries.length} registros
             </Badge>
@@ -191,8 +212,10 @@ const ProductionRegistry = () => {
                 <div key={entry.id} className="flex items-center justify-between p-4 rounded-lg border bg-card/50">
                   <div className="flex-1">
                     <div className="flex items-center space-x-4">
-                      <Badge variant={entry.box === 'caixa01' ? 'default' : 'secondary'}>
-                        {entry.box === 'caixa01' ? 'Caixa 01' : 'Caixa 02'}
+                      <Badge variant={entry.box?.includes('01') ? 'default' : 'secondary'}>
+                        {entry.box === 'caixa01' ? 'Caixa 01' : 
+                         entry.box === 'caixa02' ? 'Caixa 02' :
+                         entry.box === 'linha01' ? 'Linha 01' : 'Linha 02'}
                       </Badge>
                       <span className="font-medium">{entry.product_name}</span>
                       <span className="text-sm text-muted-foreground">

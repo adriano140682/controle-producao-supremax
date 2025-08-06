@@ -50,6 +50,7 @@ export type Database = {
           product_name: string | null
           quantity: number
           timestamp: number
+          user_id: string | null
         }
         Insert: {
           batch: string
@@ -62,6 +63,7 @@ export type Database = {
           product_name?: string | null
           quantity: number
           timestamp: number
+          user_id?: string | null
         }
         Update: {
           batch?: string
@@ -74,6 +76,7 @@ export type Database = {
           product_name?: string | null
           quantity?: number
           timestamp?: number
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -101,9 +104,11 @@ export type Database = {
           observations: string | null
           product_id: string | null
           product_name: string
+          production_type: string
           quantity: number
           time: string
           timestamp: number
+          user_id: string | null
         }
         Insert: {
           box: string
@@ -113,9 +118,11 @@ export type Database = {
           observations?: string | null
           product_id?: string | null
           product_name: string
+          production_type?: string
           quantity: number
           time: string
           timestamp: number
+          user_id?: string | null
         }
         Update: {
           box?: string
@@ -125,9 +132,11 @@ export type Database = {
           observations?: string | null
           product_id?: string | null
           product_name?: string
+          production_type?: string
           quantity?: number
           time?: string
           timestamp?: number
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -141,6 +150,7 @@ export type Database = {
       }
       products: {
         Row: {
+          category: string
           created_at: string
           id: string
           name: string
@@ -148,6 +158,7 @@ export type Database = {
           weight: number
         }
         Insert: {
+          category?: string
           created_at?: string
           id?: string
           name: string
@@ -155,11 +166,39 @@ export type Database = {
           weight: number
         }
         Update: {
+          category?: string
           created_at?: string
           id?: string
           name?: string
           updated_at?: string
           weight?: number
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          production_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          production_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          production_type?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -176,6 +215,7 @@ export type Database = {
           start_date: string
           start_time: string
           timestamp: number
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -189,6 +229,7 @@ export type Database = {
           start_date: string
           start_time: string
           timestamp: number
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -202,6 +243,7 @@ export type Database = {
           start_date?: string
           start_time?: string
           timestamp?: number
+          user_id?: string | null
         }
         Relationships: []
       }

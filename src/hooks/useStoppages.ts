@@ -27,12 +27,16 @@ export const useStoppages = () => {
     }
   };
 
-  const addStoppage = async (stoppage: Omit<StoppageInsert, 'timestamp' | 'is_active'>) => {
+  const addStoppage = async (stoppage: Omit<StoppageInsert, 'timestamp' | 'is_active' | 'user_id'>) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
       const newStoppage = {
         ...stoppage,
         timestamp: getBrazilTimestamp(),
-        is_active: true
+        is_active: true,
+        user_id: user.id
       };
 
       const { data, error } = await supabase

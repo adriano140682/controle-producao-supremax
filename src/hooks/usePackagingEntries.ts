@@ -27,11 +27,15 @@ export const usePackagingEntries = () => {
     }
   };
 
-  const addEntry = async (entry: Omit<PackagingEntryInsert, 'timestamp'>) => {
+  const addEntry = async (entry: Omit<PackagingEntryInsert, 'timestamp' | 'user_id'>) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
       const newEntry = {
         ...entry,
-        timestamp: getBrazilTimestamp()
+        timestamp: getBrazilTimestamp(),
+        user_id: user.id
       };
 
       const { data, error } = await supabase
