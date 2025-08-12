@@ -10,10 +10,10 @@ import { AlertTriangle, Play, Square, Clock } from 'lucide-react';
 import { useStoppages } from '@/hooks/useStoppages';
 import { toast } from '@/hooks/use-toast';
 import { getBrazilDateForInput, getBrazilTimeForInput } from '@/utils/dateUtils';
-import { useAuth } from '@/hooks/useAuth';
+
 
 const StoppagesRegistry = () => {
-  const { profile } = useAuth();
+  const [productionType, setProductionType] = useState<'ração' | 'mineral'>('ração');
   const [date, setDate] = useState(getBrazilDateForInput());
   const [time, setTime] = useState(getBrazilTimeForInput());
   const [sector, setSector] = useState('');
@@ -142,6 +142,18 @@ const StoppagesRegistry = () => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleStartStoppage} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="production-type">Tipo de Produção</Label>
+              <Select value={productionType} onValueChange={(value: 'ração' | 'mineral') => setProductionType(value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ração">Ração</SelectItem>
+                  <SelectItem value="mineral">Mineral</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <Label htmlFor="date">Data</Label>
@@ -172,7 +184,7 @@ const StoppagesRegistry = () => {
                     <SelectValue placeholder="Selecione o setor" />
                   </SelectTrigger>
                   <SelectContent>
-                    {profile?.production_type === 'mineral' ? (
+                    {productionType === 'mineral' ? (
                       <>
                         <SelectItem value="linha01">Linha 01</SelectItem>
                         <SelectItem value="linha02">Linha 02</SelectItem>

@@ -29,13 +29,9 @@ export const useProductionEntries = () => {
 
   const addEntry = async (entry: Omit<ProductionEntryInsert, 'timestamp' | 'user_id'>) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
       const newEntry = {
         ...entry,
         timestamp: getBrazilTimestamp(),
-        user_id: user.id
       };
 
       const { data, error } = await supabase

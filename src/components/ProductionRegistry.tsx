@@ -11,10 +11,10 @@ import { useProductionEntries } from '@/hooks/useProductionEntries';
 import { useProducts } from '@/hooks/useProducts';
 import { toast } from '@/hooks/use-toast';
 import { getBrazilDateForInput, getBrazilTimeForInput } from '@/utils/dateUtils';
-import { useAuth } from '@/hooks/useAuth';
+
 
 const ProductionRegistry = () => {
-  const { profile } = useAuth();
+  const [productionType, setProductionType] = useState<'ração' | 'mineral'>('ração');
   const [date, setDate] = useState(getBrazilDateForInput());
   const [time, setTime] = useState(getBrazilTimeForInput());
   const [box, setBox] = useState('');
@@ -39,7 +39,6 @@ const ProductionRegistry = () => {
     if (!selectedProduct) return;
 
     try {
-      // Add production_type from user profile
       const entryData = {
         date,
         time,
@@ -48,7 +47,7 @@ const ProductionRegistry = () => {
         product_name: selectedProduct.name,
         quantity: parseInt(quantity),
         observations: observations || null,
-        production_type: profile?.production_type || 'ração'
+        production_type: productionType
       };
 
       await addEntry(entryData);
@@ -76,7 +75,7 @@ const ProductionRegistry = () => {
     .filter(product => 
       product.name && 
       product.id && 
-      product.category === profile?.production_type
+      product.category === productionType
     );
 
   return (
@@ -86,7 +85,7 @@ const ProductionRegistry = () => {
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Factory className="h-5 w-5" />
-            <span>Registro de {profile?.production_type === 'mineral' ? 'Mineral' : 'Ração'}</span>
+            <span>Registro de {productionType === 'mineral' ? 'Mineral' : 'Ração'}</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -115,15 +114,28 @@ const ProductionRegistry = () => {
               </div>
             </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="production-type">Tipo de Produção</Label>
+              <Select value={productionType} onValueChange={(value: 'ração' | 'mineral') => setProductionType(value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ração">Ração</SelectItem>
+                  <SelectItem value="mineral">Mineral</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="box">{profile?.production_type === 'mineral' ? 'Linha' : 'Caixa'}</Label>
+                <Label htmlFor="box">{productionType === 'mineral' ? 'Linha' : 'Caixa'}</Label>
                 <Select value={box} onValueChange={setBox}>
                   <SelectTrigger>
-                    <SelectValue placeholder={`Selecione a ${profile?.production_type === 'mineral' ? 'linha' : 'caixa'}`} />
+                    <SelectValue placeholder={`Selecione a ${productionType === 'mineral' ? 'linha' : 'caixa'}`} />
                   </SelectTrigger>
                   <SelectContent>
-                    {profile?.production_type === 'mineral' ? (
+                    {productionType === 'mineral' ? (
                       <>
                         <SelectItem value="linha01">Linha 01</SelectItem>
                         <SelectItem value="linha02">Linha 02</SelectItem>
@@ -153,7 +165,7 @@ const ProductionRegistry = () => {
                       ))
                     ) : (
                       <SelectItem value="no-products" disabled>
-                        Nenhum produto de {profile?.production_type} cadastrado
+                        Nenhum produto de {productionType} cadastrado
                       </SelectItem>
                     )}
                   </SelectContent>

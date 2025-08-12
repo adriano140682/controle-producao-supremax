@@ -2,19 +2,16 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
+
 import { Badge } from "@/components/ui/badge";
 import { 
   Factory, 
   Package, 
-  Users, 
   Activity, 
   AlertTriangle, 
   FileText,
   Settings,
-  Play,
-  Pause,
-  StopCircle
+  Play
 } from 'lucide-react';
 import Dashboard from '@/components/Dashboard';
 import ProductionRegistry from '@/components/ProductionRegistry';
@@ -24,10 +21,10 @@ import Reports from '@/components/Reports';
 import SettingsTab from '@/components/SettingsTab';
 import { useProductionStore } from '@/store/productionStore';
 import { getBrazilTime, formatBrazilDate, formatBrazilTime } from '@/utils/dateUtils';
-import { useAuth } from '@/hooks/useAuth';
+
 
 const Index = () => {
-  const { profile, signOut } = useAuth();
+  
   const { getProductionStatus, currentStoppages } = useProductionStore();
   const [currentTime, setCurrentTime] = useState(getBrazilTime());
 
@@ -50,10 +47,10 @@ const Index = () => {
                 <Factory className="h-8 w-8 text-primary" />
                 <div>
                   <h1 className="text-2xl font-bold">
-                    Sistema de {profile?.production_type === 'mineral' ? 'Mineral' : 'Ração'}
+                    Sistema de Produção
                   </h1>
                   <p className="text-sm text-muted-foreground">
-                    {profile?.name} - Controle de Produção
+                    Controle de Produção
                   </p>
                 </div>
               </div>
@@ -70,43 +67,20 @@ const Index = () => {
               </div>
               
               <div className="flex space-x-2">
-                {profile?.production_type === 'ração' ? (
-                  <>
-                    <Badge variant={productionStatus.caixa01 ? "default" : "secondary"} className="status-running">
-                      <Play className="h-3 w-3 mr-1" />
-                      Caixa 01
-                    </Badge>
-                    <Badge variant={productionStatus.caixa02 ? "default" : "secondary"} className="status-running">
-                      <Play className="h-3 w-3 mr-1" />
-                      Caixa 02
-                    </Badge>
-                  </>
-                ) : (
-                  <>
-                    <Badge variant={productionStatus.caixa01 ? "default" : "secondary"} className="status-running">
-                      <Play className="h-3 w-3 mr-1" />
-                      Linha 01
-                    </Badge>
-                    <Badge variant={productionStatus.caixa02 ? "default" : "secondary"} className="status-running">
-                      <Play className="h-3 w-3 mr-1" />
-                      Linha 02
-                    </Badge>
-                  </>
-                )}
+                <Badge variant={productionStatus.caixa01 ? "default" : "secondary"} className="status-running">
+                  <Play className="h-3 w-3 mr-1" />
+                  Caixa 01
+                </Badge>
+                <Badge variant={productionStatus.caixa02 ? "default" : "secondary"} className="status-running">
+                  <Play className="h-3 w-3 mr-1" />
+                  Caixa 02
+                </Badge>
                 {activeStoppages > 0 && (
                   <Badge variant="destructive" className="status-stopped">
                     <AlertTriangle className="h-3 w-3 mr-1" />
                     {activeStoppages} Paradas
                   </Badge>
                 )}
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => signOut()}
-                  className="ml-2"
-                >
-                  Sair
-                </Button>
               </div>
             </div>
           </div>
