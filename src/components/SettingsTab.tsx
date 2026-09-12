@@ -76,8 +76,8 @@ const SettingsTab = () => {
       setProductWeight('');
     } catch (error) {
       toast({
-        title: "Erro",
-        description: "Erro ao salvar produto",
+        title: "Não foi possível salvar",
+        description: describeError(error, "produto"),
         variant: "destructive",
       });
     }
