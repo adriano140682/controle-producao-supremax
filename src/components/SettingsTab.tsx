@@ -157,8 +157,8 @@ const SettingsTab = () => {
       setEmployeeName('');
     } catch (error) {
       toast({
-        title: "Erro",
-        description: "Erro ao salvar colaboradora",
+        title: "Não foi possível salvar",
+        description: describeError(error, "colaboradora"),
         variant: "destructive",
       });
     }
