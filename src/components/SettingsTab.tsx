@@ -181,8 +181,8 @@ const SettingsTab = () => {
       });
     } catch (error) {
       toast({
-        title: "Erro",
-        description: "Erro ao remover colaboradora",
+        title: "Não foi possível remover",
+        description: describeError(error, "colaboradora"),
         variant: "destructive",
       });
     }
