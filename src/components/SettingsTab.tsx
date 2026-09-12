@@ -10,6 +10,20 @@ import { useProducts } from '@/hooks/useProducts';
 import { useEmployees } from '@/hooks/useEmployees';
 import { toast } from '@/hooks/use-toast';
 
+const describeError = (error: unknown, entidade: string) => {
+  const message =
+    (error as { message?: string })?.message ||
+    (typeof error === 'string' ? error : '');
+
+  if (/failed to fetch|network/i.test(message)) {
+    return `Sem conexão com o servidor. Verifique a internet e tente salvar o ${entidade} novamente.`;
+  }
+
+  return message
+    ? `Erro ao salvar ${entidade}: ${message}`
+    : `Erro ao salvar ${entidade}. Tente novamente.`;
+};
+
 const SettingsTab = () => {
   // Product form state
   const [productName, setProductName] = useState('');
