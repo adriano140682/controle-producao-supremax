@@ -115,8 +115,8 @@ const SettingsTab = () => {
       });
     } catch (error) {
       toast({
-        title: "Erro",
-        description: "Erro ao remover produto",
+        title: "Não foi possível remover",
+        description: describeError(error, "produto"),
         variant: "destructive",
       });
     }
