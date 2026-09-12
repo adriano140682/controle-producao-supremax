@@ -10,6 +10,20 @@ import { useProducts } from '@/hooks/useProducts';
 import { useEmployees } from '@/hooks/useEmployees';
 import { toast } from '@/hooks/use-toast';
 
+const describeError = (error: unknown, entidade: string) => {
+  const message =
+    (error as { message?: string })?.message ||
+    (typeof error === 'string' ? error : '');
+
+  if (/failed to fetch|network/i.test(message)) {
+    return `Sem conexão com o servidor. Verifique a internet e tente salvar o ${entidade} novamente.`;
+  }
+
+  return message
+    ? `Erro ao salvar ${entidade}: ${message}`
+    : `Erro ao salvar ${entidade}. Tente novamente.`;
+};
+
 const SettingsTab = () => {
   // Product form state
   const [productName, setProductName] = useState('');
@@ -76,8 +90,8 @@ const SettingsTab = () => {
       setProductWeight('');
     } catch (error) {
       toast({
-        title: "Erro",
-        description: "Erro ao salvar produto",
+        title: "Não foi possível salvar",
+        description: describeError(error, "produto"),
         variant: "destructive",
       });
     }
@@ -101,8 +115,8 @@ const SettingsTab = () => {
       });
     } catch (error) {
       toast({
-        title: "Erro",
-        description: "Erro ao remover produto",
+        title: "Não foi possível remover",
+        description: describeError(error, "produto"),
         variant: "destructive",
       });
     }
@@ -143,8 +157,8 @@ const SettingsTab = () => {
       setEmployeeName('');
     } catch (error) {
       toast({
-        title: "Erro",
-        description: "Erro ao salvar colaboradora",
+        title: "Não foi possível salvar",
+        description: describeError(error, "colaboradora"),
         variant: "destructive",
       });
     }
@@ -167,8 +181,8 @@ const SettingsTab = () => {
       });
     } catch (error) {
       toast({
-        title: "Erro",
-        description: "Erro ao remover colaboradora",
+        title: "Não foi possível remover",
+        description: describeError(error, "colaboradora"),
         variant: "destructive",
       });
     }
