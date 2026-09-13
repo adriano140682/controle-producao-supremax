@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, Play, Square, Clock } from 'lucide-react';
+import { AlertTriangle, Play, Square, Clock, Trash2 } from 'lucide-react';
 import { useStoppages } from '@/hooks/useStoppages';
 import { toast } from '@/hooks/use-toast';
 import { getBrazilDateForInput, getBrazilTimeForInput } from '@/utils/dateUtils';
@@ -19,7 +19,21 @@ const StoppagesRegistry = () => {
   const [sector, setSector] = useState('');
   const [reason, setReason] = useState('');
 
-  const { stoppages, addStoppage, endStoppage } = useStoppages();
+  const { stoppages, addStoppage, endStoppage, deleteStoppage } = useStoppages();
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Deseja realmente excluir esta parada?')) return;
+    try {
+      await deleteStoppage(id);
+      toast({ title: "Parada excluída", description: "O registro foi removido com sucesso." });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: error instanceof Error ? `Não foi possível excluir: ${error.message}` : "Não foi possível excluir a parada.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const getStoppagesByDate = (date: string) => {
     return stoppages.filter(stoppage => stoppage.start_date === date);
