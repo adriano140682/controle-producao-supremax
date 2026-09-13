@@ -266,12 +266,23 @@ const StoppagesRegistry = () => {
                         </Badge>
                       )}
                     </div>
-                    {stoppage.duration && (
-                      <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                        <Clock className="h-4 w-4" />
-                        <span>{formatDuration(stoppage.duration)}</span>
-                      </div>
-                    )}
+                    <div className="flex items-center space-x-2">
+                      {stoppage.duration && (
+                        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                          <Clock className="h-4 w-4" />
+                          <span>{formatDuration(stoppage.duration)}</span>
+                        </div>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(stoppage.id)}
+                        aria-label="Excluir parada"
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                   <div className="mt-2 text-sm text-muted-foreground">
                     <span>Início: {stoppage.start_time}</span>
