@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Factory, Package, Plus } from 'lucide-react';
+import { Factory, Package, Plus, Trash2 } from 'lucide-react';
 import { useProductionEntries } from '@/hooks/useProductionEntries';
 import { useProducts } from '@/hooks/useProducts';
 import { toast } from '@/hooks/use-toast';
@@ -23,7 +23,21 @@ const ProductionRegistry = () => {
   const [observations, setObservations] = useState('');
 
   const { products } = useProducts();
-  const { entries: productionEntries, addEntry } = useProductionEntries();
+  const { entries: productionEntries, addEntry, deleteEntry } = useProductionEntries();
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Deseja realmente excluir este registro de produção?')) return;
+    try {
+      await deleteEntry(id);
+      toast({ title: "Registro excluído", description: "O registro foi removido com sucesso." });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: error instanceof Error ? `Não foi possível excluir: ${error.message}` : "Não foi possível excluir o registro.",
+        variant: "destructive",
+      });
+    }
+  };
   
   const getProductionByDate = (date: string) => {
     return productionEntries.filter(entry => entry.date === date);
@@ -243,6 +257,15 @@ const ProductionRegistry = () => {
                       </p>
                     )}
                   </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDelete(entry.id)}
+                    aria-label="Excluir registro"
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               ))}
             </div>

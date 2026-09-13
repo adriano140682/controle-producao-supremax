@@ -1,44 +1,32 @@
-import { format, formatInTimeZone, toZonedTime } from 'date-fns-tz';
-import { ptBR } from 'date-fns/locale';
+// Todas as datas/horas usam o horário LOCAL do aparelho (sem conversão de fuso).
 
-const BRAZIL_TIMEZONE = 'America/Sao_Paulo';
+const pad = (n: number) => String(n).padStart(2, '0');
 
-// Obter data/hora atual no fuso horário do Brasil
-export const getBrazilTime = (): Date => {
-  return toZonedTime(new Date(), BRAZIL_TIMEZONE);
-};
+// Data/hora atual do aparelho
+export const getBrazilTime = (): Date => new Date();
 
 // Formatar data no padrão brasileiro (DD/MM/AAAA)
-export const formatBrazilDate = (date: Date = getBrazilTime()): string => {
-  return formatInTimeZone(date, BRAZIL_TIMEZONE, 'dd/MM/yyyy', { locale: ptBR });
-};
+export const formatBrazilDate = (date: Date = new Date()): string =>
+  `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()}`;
 
 // Formatar hora no padrão brasileiro (HH:mm:ss)
-export const formatBrazilTime = (date: Date = getBrazilTime()): string => {
-  return formatInTimeZone(date, BRAZIL_TIMEZONE, 'HH:mm:ss', { locale: ptBR });
-};
+export const formatBrazilTime = (date: Date = new Date()): string =>
+  `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
 
-// Formatar data e hora no padrão brasileiro
-export const formatBrazilDateTime = (date: Date = getBrazilTime()): string => {
-  return formatInTimeZone(date, BRAZIL_TIMEZONE, 'dd/MM/yyyy HH:mm:ss', { locale: ptBR });
-};
+// Formatar data e hora
+export const formatBrazilDateTime = (date: Date = new Date()): string =>
+  `${formatBrazilDate(date)} ${formatBrazilTime(date)}`;
 
-// Obter data no formato YYYY-MM-DD para inputs
-export const getBrazilDateForInput = (date: Date = getBrazilTime()): string => {
-  return formatInTimeZone(date, BRAZIL_TIMEZONE, 'yyyy-MM-dd');
-};
+// Data no formato YYYY-MM-DD para inputs (local, nunca UTC)
+export const getBrazilDateForInput = (date: Date = new Date()): string =>
+  `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 
-// Obter hora no formato HH:mm para inputs
-export const getBrazilTimeForInput = (date: Date = getBrazilTime()): string => {
-  return formatInTimeZone(date, BRAZIL_TIMEZONE, 'HH:mm');
-};
+// Hora no formato HH:mm para inputs
+export const getBrazilTimeForInput = (date: Date = new Date()): string =>
+  `${pad(date.getHours())}:${pad(date.getMinutes())}`;
 
-// Converter timestamp para data do Brasil
-export const timestampToBrazilDate = (timestamp: number): Date => {
-  return toZonedTime(new Date(timestamp), BRAZIL_TIMEZONE);
-};
+// Converter timestamp para Date local
+export const timestampToBrazilDate = (timestamp: number): Date => new Date(timestamp);
 
-// Obter timestamp atual ajustado para o Brasil
-export const getBrazilTimestamp = (): number => {
-  return getBrazilTime().getTime();
-};
+// Timestamp atual
+export const getBrazilTimestamp = (): number => Date.now();

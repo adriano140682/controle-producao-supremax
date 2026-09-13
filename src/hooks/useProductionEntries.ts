@@ -49,6 +49,21 @@ export const useProductionEntries = () => {
     }
   };
 
+  const deleteEntry = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('production_entries')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      setEntries(prev => prev.filter(entry => entry.id !== id));
+    } catch (error) {
+      console.error('Error deleting production entry:', error);
+      throw error;
+    }
+  };
+
   const getEntriesByDate = (date: string) => {
     return entries.filter(entry => entry.date === date);
   };
@@ -99,6 +114,7 @@ export const useProductionEntries = () => {
     entries,
     loading,
     addEntry,
+    deleteEntry,
     getEntriesByDate,
     getEntriesByHour,
     getTotalByBox,

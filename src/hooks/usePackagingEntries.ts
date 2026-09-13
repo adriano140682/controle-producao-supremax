@@ -49,6 +49,21 @@ export const usePackagingEntries = () => {
     }
   };
 
+  const deleteEntry = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('packaging_entries')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      setEntries(prev => prev.filter(entry => entry.id !== id));
+    } catch (error) {
+      console.error('Error deleting packaging entry:', error);
+      throw error;
+    }
+  };
+
   const getEntriesByDate = (date: string) => {
     return entries.filter(entry => entry.date === date);
   };
@@ -61,6 +76,7 @@ export const usePackagingEntries = () => {
     entries,
     loading,
     addEntry,
+    deleteEntry,
     getEntriesByDate,
     refetch: fetchEntries
   };

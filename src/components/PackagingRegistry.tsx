@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Package, Plus, User, Loader2 } from 'lucide-react';
+import { Package, Plus, User, Loader2, Trash2 } from 'lucide-react';
 import { useProducts } from '@/hooks/useProducts';
 import { useEmployees } from '@/hooks/useEmployees';
 import { usePackagingEntries } from '@/hooks/usePackagingEntries';
@@ -22,7 +22,21 @@ const PackagingRegistry = () => {
 
   const { products, loading: productsLoading } = useProducts();
   const { employees, loading: employeesLoading } = useEmployees();
-  const { addEntry, getEntriesByDate, loading: entriesLoading } = usePackagingEntries();
+  const { addEntry, deleteEntry, getEntriesByDate, loading: entriesLoading } = usePackagingEntries();
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Deseja realmente excluir este registro de embalagem?')) return;
+    try {
+      await deleteEntry(id);
+      toast({ title: "Registro excluído", description: "O registro foi removido com sucesso." });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: error instanceof Error ? `Não foi possível excluir: ${error.message}` : "Não foi possível excluir o registro.",
+        variant: "destructive",
+      });
+    }
+  };
   
   const packagingEntries = getEntriesByDate(date);
 
@@ -207,6 +221,15 @@ const PackagingRegistry = () => {
                       )}
                     </div>
                   </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDelete(entry.id)}
+                    aria-label="Excluir registro"
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               ))}
             </div>

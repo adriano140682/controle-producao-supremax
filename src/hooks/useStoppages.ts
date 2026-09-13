@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables, TablesInsert } from '@/integrations/supabase/types';
-import { getBrazilTime, getBrazilTimestamp } from '@/utils/dateUtils';
+import { getBrazilTime, getBrazilTimestamp, getBrazilDateForInput } from '@/utils/dateUtils';
 
 type Stoppage = Tables<'stoppages'>;
 type StoppageInsert = TablesInsert<'stoppages'>;
@@ -63,7 +63,7 @@ export const useStoppages = () => {
       const { data, error } = await supabase
         .from('stoppages')
         .update({
-          end_date: now.toISOString().split('T')[0],
+          end_date: getBrazilDateForInput(now),
           end_time: endTime,
           duration,
           is_active: false
@@ -77,6 +77,21 @@ export const useStoppages = () => {
       return data;
     } catch (error) {
       console.error('Error ending stoppage:', error);
+      throw error;
+    }
+  };
+
+  const deleteStoppage = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('stoppages')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      setStoppages(prev => prev.filter(s => s.id !== id));
+    } catch (error) {
+      console.error('Error deleting stoppage:', error);
       throw error;
     }
   };
@@ -98,6 +113,7 @@ export const useStoppages = () => {
     loading,
     addStoppage,
     endStoppage,
+    deleteStoppage,
     getStoppagesByDate,
     getActiveStoppages,
     refetch: fetchStoppages

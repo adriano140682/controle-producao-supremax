@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, Play, Square, Clock } from 'lucide-react';
+import { AlertTriangle, Play, Square, Clock, Trash2 } from 'lucide-react';
 import { useStoppages } from '@/hooks/useStoppages';
 import { toast } from '@/hooks/use-toast';
 import { getBrazilDateForInput, getBrazilTimeForInput } from '@/utils/dateUtils';
@@ -19,7 +19,21 @@ const StoppagesRegistry = () => {
   const [sector, setSector] = useState('');
   const [reason, setReason] = useState('');
 
-  const { stoppages, addStoppage, endStoppage } = useStoppages();
+  const { stoppages, addStoppage, endStoppage, deleteStoppage } = useStoppages();
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Deseja realmente excluir esta parada?')) return;
+    try {
+      await deleteStoppage(id);
+      toast({ title: "Parada excluída", description: "O registro foi removido com sucesso." });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: error instanceof Error ? `Não foi possível excluir: ${error.message}` : "Não foi possível excluir a parada.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const getStoppagesByDate = (date: string) => {
     return stoppages.filter(stoppage => stoppage.start_date === date);
@@ -252,12 +266,23 @@ const StoppagesRegistry = () => {
                         </Badge>
                       )}
                     </div>
-                    {stoppage.duration && (
-                      <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                        <Clock className="h-4 w-4" />
-                        <span>{formatDuration(stoppage.duration)}</span>
-                      </div>
-                    )}
+                    <div className="flex items-center space-x-2">
+                      {stoppage.duration && (
+                        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                          <Clock className="h-4 w-4" />
+                          <span>{formatDuration(stoppage.duration)}</span>
+                        </div>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(stoppage.id)}
+                        aria-label="Excluir parada"
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                   <div className="mt-2 text-sm text-muted-foreground">
                     <span>Início: {stoppage.start_time}</span>
