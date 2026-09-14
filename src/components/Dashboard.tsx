@@ -282,7 +282,7 @@ const Dashboard = () => {
                     <div className="font-medium text-red-400">{stoppage.sector}</div>
                     <div className="text-sm text-muted-foreground">{stoppage.reason}</div>
                     <div className="text-xs text-muted-foreground">
-                      Iniciado em: {stoppage.start_time} - {new Date(stoppage.start_date).toLocaleDateString('pt-BR')}
+                      Iniciado em: {stoppage.start_time} - {parseLocalDate(stoppage.start_date).toLocaleDateString('pt-BR')}
                     </div>
                   </div>
                   <Badge variant="destructive" className="animate-pulse-slow">

@@ -20,6 +20,7 @@ import { useStoppages } from '@/hooks/useStoppages';
 import { useProducts } from '@/hooks/useProducts';
 import { useEmployees } from '@/hooks/useEmployees';
 import { toast } from '@/hooks/use-toast';
+import { getBrazilDateForInput, parseLocalDate } from '@/utils/dateUtils';
 
 const Reports = () => {
   const { entries: productionEntries } = useProductionEntries();
@@ -41,17 +42,17 @@ const Reports = () => {
   };
 
   const [reportType, setReportType] = useState<'day' | 'week' | 'custom'>('day');
-  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
-  const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
+  const [startDate, setStartDate] = useState(getBrazilDateForInput());
+  const [endDate, setEndDate] = useState(getBrazilDateForInput());
 
   const getDateRange = () => {
     const today = new Date();
-    let start = new Date(startDate);
-    let end = new Date(endDate);
+    let start = parseLocalDate(startDate);
+    let end = parseLocalDate(endDate);
 
     switch (reportType) {
       case 'day':
-        start = end = new Date(startDate);
+        start = end = parseLocalDate(startDate);
         break;
       case 'week':
         const weekStart = new Date(today);
@@ -62,8 +63,8 @@ const Reports = () => {
         end = weekEnd;
         break;
       case 'custom':
-        start = new Date(startDate);
-        end = new Date(endDate);
+        start = parseLocalDate(startDate);
+        end = parseLocalDate(endDate);
         break;
     }
 
@@ -76,7 +77,7 @@ const Reports = () => {
     const current = new Date(start);
 
     while (current <= end) {
-      dates.push(current.toISOString().split('T')[0]);
+      dates.push(getBrazilDateForInput(current));
       current.setDate(current.getDate() + 1);
     }
 
@@ -93,7 +94,7 @@ const Reports = () => {
           const caixa01 = entries.filter(e => e.box === 'caixa01').reduce((sum, e) => sum + e.quantity, 0);
           const caixa02 = entries.filter(e => e.box === 'caixa02').reduce((sum, e) => sum + e.quantity, 0);
           return {
-            date: new Date(date).toLocaleDateString('pt-BR'),
+            date: parseLocalDate(date).toLocaleDateString('pt-BR'),
             caixa01,
             caixa02,
             total: caixa01 + caixa02
@@ -237,7 +238,7 @@ const Reports = () => {
     csvContent += "Data;Setor;Motivo;Duração\n";
     reportData.stoppages.list.forEach(stoppage => {
       const sectorName = stoppage.sector === 'caixa01' ? 'Caixa 01' : stoppage.sector === 'caixa02' ? 'Caixa 02' : 'Embalagem';
-      csvContent += `${new Date(stoppage.start_date).toLocaleDateString('pt-BR')};${sectorName};"${stoppage.reason}";${stoppage.duration ? formatDuration(stoppage.duration) : 'Em andamento'}\n`;
+      csvContent += `${parseLocalDate(stoppage.start_date).toLocaleDateString('pt-BR')};${sectorName};"${stoppage.reason}";${stoppage.duration ? formatDuration(stoppage.duration) : 'Em andamento'}\n`;
     });
 
     // Create and download file
