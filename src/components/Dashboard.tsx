@@ -38,11 +38,26 @@ import { getBrazilDateForInput, parseLocalDate } from '@/utils/dateUtils';
 const Dashboard = () => {
   const [selectedDate, setSelectedDate] = useState(getBrazilDateForInput());
   
-  const { entries: productionEntries } = useProductionEntries();
-  const { entries: packagingEntries } = usePackagingEntries();
-  const { stoppages } = useStoppages();
+  const { entries: productionEntries, refetch: refetchProduction } = useProductionEntries();
+  const { entries: packagingEntries, refetch: refetchPackaging } = usePackagingEntries();
+  const { stoppages, refetch: refetchStoppages } = useStoppages();
   const { products } = useProducts();
   const { employees } = useEmployees();
+
+  // Mantém os indicadores atualizados quando novos lançamentos são feitos em outras abas
+  useEffect(() => {
+    const reload = () => {
+      refetchProduction();
+      refetchPackaging();
+      refetchStoppages();
+    };
+    const interval = setInterval(reload, 10000);
+    window.addEventListener('focus', reload);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', reload);
+    };
+  }, []);
 
   const getProductionByDate = (date: string) => {
     return productionEntries.filter(entry => entry.date === date);
