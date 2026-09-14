@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -33,17 +33,31 @@ import { usePackagingEntries } from '@/hooks/usePackagingEntries';
 import { useStoppages } from '@/hooks/useStoppages';
 import { useProducts } from '@/hooks/useProducts';
 import { useEmployees } from '@/hooks/useEmployees';
+import { getBrazilDateForInput, parseLocalDate } from '@/utils/dateUtils';
 
 const Dashboard = () => {
-  const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split('T')[0]
-  );
+  const [selectedDate, setSelectedDate] = useState(getBrazilDateForInput());
   
-  const { entries: productionEntries } = useProductionEntries();
-  const { entries: packagingEntries } = usePackagingEntries();
-  const { stoppages } = useStoppages();
+  const { entries: productionEntries, refetch: refetchProduction } = useProductionEntries();
+  const { entries: packagingEntries, refetch: refetchPackaging } = usePackagingEntries();
+  const { stoppages, refetch: refetchStoppages } = useStoppages();
   const { products } = useProducts();
   const { employees } = useEmployees();
+
+  // Mantém os indicadores atualizados quando novos lançamentos são feitos em outras abas
+  useEffect(() => {
+    const reload = () => {
+      refetchProduction();
+      refetchPackaging();
+      refetchStoppages();
+    };
+    const interval = setInterval(reload, 10000);
+    window.addEventListener('focus', reload);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', reload);
+    };
+  }, []);
 
   const getProductionByDate = (date: string) => {
     return productionEntries.filter(entry => entry.date === date);
@@ -268,7 +282,7 @@ const Dashboard = () => {
                     <div className="font-medium text-red-400">{stoppage.sector}</div>
                     <div className="text-sm text-muted-foreground">{stoppage.reason}</div>
                     <div className="text-xs text-muted-foreground">
-                      Iniciado em: {stoppage.start_time} - {new Date(stoppage.start_date).toLocaleDateString('pt-BR')}
+                      Iniciado em: {stoppage.start_time} - {parseLocalDate(stoppage.start_date).toLocaleDateString('pt-BR')}
                     </div>
                   </div>
                   <Badge variant="destructive" className="animate-pulse-slow">
