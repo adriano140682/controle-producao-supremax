@@ -30,3 +30,13 @@ export const timestampToBrazilDate = (timestamp: number): Date => new Date(times
 
 // Timestamp atual
 export const getBrazilTimestamp = (): number => Date.now();
+
+// Converter "YYYY-MM-DD" em Date LOCAL (evita o deslocamento de 1 dia do UTC)
+export const parseLocalDate = (dateStr: string): Date => {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return new Date(y, (m || 1) - 1, d || 1);
+};
+
+// Formatar "YYYY-MM-DD" no padrão brasileiro sem conversão de fuso
+export const formatLocalDateBR = (dateStr: string): string =>
+  formatBrazilDate(parseLocalDate(dateStr));

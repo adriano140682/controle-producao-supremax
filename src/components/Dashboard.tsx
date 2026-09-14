@@ -35,9 +35,7 @@ import { useProducts } from '@/hooks/useProducts';
 import { useEmployees } from '@/hooks/useEmployees';
 
 const Dashboard = () => {
-  const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split('T')[0]
-  );
+  const [selectedDate, setSelectedDate] = useState(getBrazilDateForInput());
   
   const { entries: productionEntries } = useProductionEntries();
   const { entries: packagingEntries } = usePackagingEntries();
