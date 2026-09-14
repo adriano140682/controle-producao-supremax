@@ -33,6 +33,7 @@ import { usePackagingEntries } from '@/hooks/usePackagingEntries';
 import { useStoppages } from '@/hooks/useStoppages';
 import { useProducts } from '@/hooks/useProducts';
 import { useEmployees } from '@/hooks/useEmployees';
+import { getBrazilDateForInput, parseLocalDate } from '@/utils/dateUtils';
 
 const Dashboard = () => {
   const [selectedDate, setSelectedDate] = useState(getBrazilDateForInput());
